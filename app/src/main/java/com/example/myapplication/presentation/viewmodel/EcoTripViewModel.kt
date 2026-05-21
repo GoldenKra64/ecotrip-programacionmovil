@@ -81,6 +81,16 @@ class EcoTripViewModel(
 
             EcoTripUiEvent.LimpiarMensajeError ->
                 actualizarEstado { it.copy(mensajeError = null) }
+
+            EcoTripUiEvent.ResetearEstadoNavegacion -> reiniciarFormulario()
+        }
+    }
+
+    private fun reiniciarFormulario() {
+        _uiState.update { 
+            val nuevoEstado = EcoTripUiState(isLoading = false)
+            persistirEnSavedState(nuevoEstado)
+            nuevoEstado
         }
     }
 
@@ -157,26 +167,32 @@ class EcoTripViewModel(
         }
     }
 
-    private fun validarFormulario(estado: EcoTripUiState): String? = when {
-        estado.nombreViajero.isBlank() ->
-            "Ingrese el nombre del viajero"
+    private fun validarFormulario(estado: EcoTripUiState): String? {
+        val dias = estado.diasDuracion
+        val pasajeros = estado.cantidadPasajeros
+        val presupuesto = estado.presupuestoEstimado
 
-        estado.ciudadOrigen.isBlank() ->
-            "Ingrese la ciudad de origen"
+        return when {
+            estado.nombreViajero.isBlank() ->
+                "Ingrese el nombre del viajero"
 
-        estado.ciudadDestino.isBlank() ->
-            "Ingrese el destino del viaje"
+            estado.ciudadOrigen.isBlank() ->
+                "Ingrese la ciudad de origen"
 
-        estado.diasDuracion == null || estado.diasDuracion < PreferenciaViaje.DURACION_MINIMA ->
-            "La duración debe ser un número entero mayor o igual a ${PreferenciaViaje.DURACION_MINIMA}"
+            estado.ciudadDestino.isBlank() ->
+                "Ingrese el destino del viaje"
 
-        estado.cantidadPasajeros == null || estado.cantidadPasajeros < PreferenciaViaje.PASAJEROS_MINIMO ->
-            "La cantidad de pasajeros debe ser un entero mayor o igual a ${PreferenciaViaje.PASAJEROS_MINIMO}"
+            dias == null || dias < PreferenciaViaje.DURACION_MINIMA ->
+                "La duración debe ser un número entero mayor o igual a ${PreferenciaViaje.DURACION_MINIMA}"
 
-        estado.presupuestoEstimado == null || estado.presupuestoEstimado < PreferenciaViaje.PRESUPUESTO_MINIMO ->
-            "El presupuesto debe ser un valor numérico válido"
+            pasajeros == null || pasajeros < PreferenciaViaje.PASAJEROS_MINIMO ->
+                "La cantidad de pasajeros debe ser un entero mayor o igual a ${PreferenciaViaje.PASAJEROS_MINIMO}"
 
-        else -> null
+            presupuesto == null || presupuesto < PreferenciaViaje.PRESUPUESTO_MINIMO ->
+                "El presupuesto debe ser un valor numérico válido"
+
+            else -> null
+        }
     }
 
     private fun restaurarEstadoInicial(): EcoTripUiState {
@@ -186,17 +202,17 @@ class EcoTripViewModel(
 
         return EcoTripUiState(
             nombreViajero = "",
-            ciudadOrigen = savedStateHandle.get(Keys.CIUDAD_ORIGEN).orEmpty(),
-            ciudadDestino = savedStateHandle.get(Keys.CIUDAD_DESTINO).orEmpty(),
-            cantidadPasajerosInput = savedStateHandle.get(Keys.CANTIDAD_PASAJEROS)
+            ciudadOrigen = savedStateHandle.get<String>(Keys.CIUDAD_ORIGEN).orEmpty(),
+            ciudadDestino = savedStateHandle.get<String>(Keys.CIUDAD_DESTINO).orEmpty(),
+            cantidadPasajerosInput = savedStateHandle.get<String>(Keys.CANTIDAD_PASAJEROS)
                 ?: PreferenciaViaje.PASAJEROS_MINIMO.toString(),
-            presupuestoEstimadoInput = savedStateHandle.get(Keys.PRESUPUESTO_ESTIMADO)
+            presupuestoEstimadoInput = savedStateHandle.get<String>(Keys.PRESUPUESTO_ESTIMADO)
                 ?: PreferenciaViaje.PRESUPUESTO_MINIMO.toString(),
-            diasDuracionInput = savedStateHandle.get(Keys.DIAS_DURACION)
+            diasDuracionInput = savedStateHandle.get<String>(Keys.DIAS_DURACION)
                 ?: PreferenciaViaje.DURACION_MINIMA.toString(),
             transporte = transporteRestaurado,
             bajaHuellaCarbono = false,
-            esViajeGrupal = savedStateHandle.get(Keys.ES_VIAJE_GRUPAL) ?: false,
+            esViajeGrupal = savedStateHandle.get<Boolean>(Keys.ES_VIAJE_GRUPAL) ?: false,
             isLoading = true
         )
     }
