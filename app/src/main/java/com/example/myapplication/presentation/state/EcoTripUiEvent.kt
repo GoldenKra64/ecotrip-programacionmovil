@@ -17,4 +17,5 @@ sealed interface EcoTripUiEvent {
     data class EsViajeGrupalChanged(val value: Boolean) : EcoTripUiEvent
     data object GuardarPreferencias : EcoTripUiEvent
     data object LimpiarMensajeError : EcoTripUiEvent
+    data object ResetearEstadoNavegacion : EcoTripUiEvent
 }
